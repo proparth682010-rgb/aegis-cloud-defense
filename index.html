@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0a0720"><meta name="description" content="AEGIS: AWS cloud defense dashboard with a three-model AI council, red team attack simulation and review-first remediation.">
+<title>AEGIS — Cloud defense with an AI council</title>
+<style>
+:root{--bg:#0a0720;--tx:#f1eeff;--mu:#9a93c4;--ln:#ffffff1f;--v:#8b6bff;--c:#19d3ff;--p:#ff4fa3;--a:#ffb02e;--m:#35f2a0;--r:14px}
+*{box-sizing:border-box;margin:0}body{background:radial-gradient(900px 500px at 10% -10%,#3b1d8f66,transparent),radial-gradient(800px 500px at 100% 0,#0b6a8a55,transparent),radial-gradient(700px 500px at 60% 110%,#8a1d5c44,transparent),var(--bg);background-attachment:fixed;color:var(--tx);font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit;color:inherit}button{cursor:pointer}:focus-visible{outline:2px solid var(--c);outline-offset:2px}
+.shell{display:grid;grid-template-columns:210px 1fr;min-height:100vh}
+.sb{padding:20px 12px;display:flex;flex-direction:column;gap:6px;position:sticky;top:0;height:100vh;border-right:1px solid var(--ln);backdrop-filter:blur(8px)}
+.brand{display:flex;gap:10px;align-items:center;padding:0 8px 18px;font:800 21px "Trebuchet MS",system-ui;letter-spacing:.05em}.brand svg{width:30px;color:var(--c)}
+.nav button{display:flex;width:100%;gap:10px;align-items:center;background:none;border:0;padding:10px;border-radius:10px;color:var(--mu);text-align:left;font-weight:500}
+.nav button:hover{background:#ffffff0d}.nav .on{color:#fff;background:linear-gradient(90deg,#8b6bff55,#19d3ff22)}
+.nav b{margin-left:auto;background:var(--p);border-radius:99px;padding:0 8px;font-size:12px}
+.rank{margin-top:auto;border-radius:var(--r);padding:14px;background:linear-gradient(135deg,#8b6bff44,#ff4fa344);border:1px solid var(--ln)}.rank b{font-size:18px}
+main{padding:24px 28px 70px;max-width:1280px;width:100%}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-end;flex-wrap:wrap;margin-bottom:20px}
+h1{font:800 36px/1.1 "Trebuchet MS",system-ui;background:linear-gradient(90deg,var(--c),var(--v),var(--p),var(--a));-webkit-background-clip:text;background-clip:text;color:transparent}
+.sub{color:var(--mu);font-size:12.5px}
+.btn{background:#ffffff12;border:1px solid var(--ln);border-radius:10px;padding:8px 14px}.btn:hover{background:#ffffff1f}
+.btn.pr{background:linear-gradient(90deg,var(--v),var(--p));border:0;font-weight:700}
+.row{display:flex;gap:8px;flex-wrap:wrap}.grid{display:grid;gap:14px}.k4{grid-template-columns:repeat(4,1fr)}.g2{grid-template-columns:1.2fr 1fr}
+.card{background:#ffffff0b;border:1px solid var(--ln);border-radius:var(--r);padding:16px;backdrop-filter:blur(6px)}.card h3{font-size:15px}
+.kpi .v{font:800 32px "Trebuchet MS",system-ui;margin:2px 0}.kpi{border-top:3px solid var(--k)}
+.up{color:var(--m)}.dn{color:var(--p)}
+.view{display:none;margin-top:14px}.view.on{display:block}
+.radar{position:relative;max-width:440px;margin:6px auto}.radar svg{width:100%}
+.ring{fill:none;stroke:#ffffff22}.sw{animation:sp 4s linear infinite;transform-box:view-box;transform-origin:0 0}@keyframes sp{to{transform:rotate(360deg)}}
+.bl{cursor:pointer}.bl circle{animation:pu 1.6s infinite}@keyframes pu{50%{opacity:.35}}.bl.fx circle{animation:none;opacity:.5}
+.feed{list-style:none;padding:0;margin-top:8px}.feed li{display:flex;gap:8px;padding:7px 0;border-bottom:1px solid var(--ln);font-size:13px;animation:fi .4s}@keyframes fi{from{opacity:0;transform:translateY(-6px)}}
+.tag{flex:none;border-radius:6px;padding:0 7px;font-size:11.5px;font-weight:700;color:#14082e}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.tools input,.tools select{background:#0a0720aa;border:1px solid var(--ln);border-radius:10px;padding:7px 10px}.tools input{flex:1;min-width:180px}
+.tw{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:680px}th{text-align:left;color:var(--mu);font-weight:500;font-size:12.5px;padding:8px 10px;border-bottom:1px solid var(--ln)}
+td{padding:11px 10px;border-bottom:1px solid var(--ln)}tbody tr{cursor:pointer}tbody tr:hover{background:#ffffff0d}td small{color:var(--mu)}
+.chip{display:inline-block;border-radius:99px;padding:1px 10px;font-size:12px;font-weight:700;color:#14082e}
+.crit{background:var(--p)}.high{background:var(--a)}.med{background:var(--c)}.fixed td:first-child{text-decoration:line-through;opacity:.55}.ok{color:var(--m)}
+.ov{position:fixed;inset:0;background:#0009;display:none;justify-content:flex-end;z-index:9}.ov.on{display:flex}
+.dr{width:min(480px,100%);background:#120c33;border-left:1px solid var(--ln);padding:22px;overflow:auto;animation:sl .25s}@keyframes sl{from{transform:translateX(30px);opacity:0}}
+.dr h2{font-size:22px;margin:10px 0}.dr h4{margin:16px 0 5px;font-size:13px;color:var(--mu);font-weight:500}
+pre{background:#05030f;border:1px solid var(--ln);border-radius:10px;padding:12px;overflow:auto;font:12.5px/1.5 ui-monospace,Menlo,monospace;white-space:pre-wrap}
+.diff{border-left:3px solid var(--a);padding:8px 12px;background:#ffffff0d;border-radius:0 8px 8px 0;margin-top:10px}
+.term{background:#05030f;border:1px solid var(--ln);border-radius:12px;padding:14px;min-height:230px;font:13px/1.7 ui-monospace,Menlo,monospace}
+.cb{display:flex;gap:10px;margin:10px 0;animation:fi .4s}.av{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:800;color:#14082e}
+.bub{background:#ffffff10;border:1px solid var(--ln);border-radius:4px 14px 14px 14px;padding:9px 13px;white-space:pre-wrap}.bub b{display:block;font-size:12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}.chips button{background:#ffffff10;border:1px solid var(--ln);border-radius:99px;padding:4px 12px;font-size:13px}.chips button:hover{border-color:var(--c)}
+.bar{height:9px;background:#ffffff14;border-radius:9px;overflow:hidden}.bar i{display:block;height:100%;transition:width .6s}
+.cmp{display:grid;gap:14px;margin-top:12px}.cmp div{display:grid;grid-template-columns:110px 1fr 44px;gap:12px;align-items:center}
+.bd{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.bd span{border:1px solid var(--ln);border-radius:12px;padding:8px 12px;background:#ffffff0b}.bd .lk{opacity:.4;filter:grayscale(1)}
+.modal{position:fixed;inset:0;background:#000b;display:none;place-items:center;z-index:10}.modal.on{display:grid}.modal>div{background:#120c33;border:1px solid var(--ln);border-radius:16px;padding:24px;width:min(440px,92vw)}
+.prog{height:8px;background:#ffffff14;border-radius:9px;margin:16px 0;overflow:hidden}.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--c),var(--p));transition:width .3s}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,80px);background:#2a1a6b;border:1px solid var(--c);padding:10px 18px;border-radius:99px;transition:.3s;z-index:20}.toast.on{transform:translate(-50%,0)}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.sb{position:static;height:auto;flex-direction:row;flex-wrap:wrap}.rank,.brand{display:none}.nav{display:flex;gap:4px;flex-wrap:wrap}.nav button{width:auto}.k4,.g2{grid-template-columns:1fr 1fr}main{padding:18px 14px}}
+@media(max-width:560px){.k4,.g2{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+body::before{content:"";position:fixed;inset:-20%;z-index:-1;background:radial-gradient(400px 300px at 20% 30%,#8b6bff33,transparent),radial-gradient(500px 400px at 80% 20%,#19d3ff2b,transparent),radial-gradient(500px 400px at 60% 90%,#ff4fa326,transparent);animation:dr 18s ease-in-out infinite alternate}@keyframes dr{to{transform:translate(4%,3%) scale(1.1)}}
+.card{transition:transform .2s,border-color .2s}.card:hover{border-color:#ffffff45;transform:translateY(-2px)}
+#pal input{width:100%;background:#05030f;border:1px solid var(--ln);border-radius:10px;padding:10px 12px}#pl{list-style:none;padding:0;margin:10px 0 0;max-height:300px;overflow:auto}#pl li{padding:8px 10px;border-radius:8px;cursor:pointer}#pl li:hover,#pl li.on{background:linear-gradient(90deg,#8b6bff55,#19d3ff22)}
+</style></head><body><div class="shell">
+<aside class="sb"><div class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2.8 20 6v5.6c0 5-3.3 8.2-8 9.8-4.7-1.6-8-4.8-8-9.8V6l8-3.2Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg>AEGIS</div>
+<nav class="nav" id="nav"><button class="on" data-v="cmd">Command centre</button><button data-v="fin">Findings <b id="nb">12</b></button><button data-v="red">Red team attack</button><button data-v="ai">AI council</button><button data-v="ast">Assets</button><button data-v="cmp">Compliance and rank</button></nav>
+<div class="rank"><div class="sub">Your shield rank</div><b id="rk"></b><div class="sub">Fix findings to level up.</div></div></aside>
+<main>
+<div class="top"><div><h1>Your cloud, defended by three AIs.</h1><p class="sub">acme-platform-prod · us-east-1 · live</p></div><div class="row"><button class="btn" id="pk">Search · Ctrl K</button><button class="btn" id="fa">Fix all critical</button><button class="btn" id="exp">Export report</button><button class="btn pr" id="scan">Run security scan</button></div></div>
+<section class="grid k4" id="kpis"></section>
+<div class="view on" id="v-cmd"><div class="grid g2"><div class="card"><h3>Threat radar</h3><p class="sub">Each dot is a finding. Closer to the centre means more dangerous. Click one.</p><div class="radar" id="radar"></div></div>
+<div class="card"><h3>Live threat feed</h3><ul class="feed" id="feed"></ul></div></div><div class="card" style="margin-top:14px"><h3>Security score, last 30 days</h3><div id="spark"></div></div></div>
+<div class="view" id="v-fin"><div class="card"><h3>All findings</h3><div class="tools"><input id="q" placeholder="Search findings or resources"><select id="fs"><option value="all">All severity</option><option value="crit">Critical</option><option value="high">High</option><option value="med">Medium</option></select><select id="fv"><option value="all">All services</option><option>IAM</option><option>S3</option><option>EC2</option><option>RDS</option><option>CloudTrail</option></select></div>
+<div class="tw"><table><thead><tr><th>Finding</th><th>Severity</th><th>Service</th><th>Resource</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table></div><p class="sub" id="none" style="display:none;padding:14px">No findings match. Clear a filter to see more.</p></div></div>
+<div class="view" id="v-red"><div class="card"><h3>Red team simulation</h3><p class="sub">AEGIS plays the attacker against your real findings. Fix a link, run it again, and watch it fail.</p><div class="row" style="margin:12px 0"><button class="btn pr" id="atk">Launch attack</button></div><div class="term" id="term">Ready. Nothing has been attacked yet.</div></div></div>
+<div class="view" id="v-ai"><div class="card"><h3>AI council</h3><p class="sub">Three specialist models read your live findings and answer together. Responses are simulated for this demo.</p>
+<div class="tools"><input id="ak" type="password" placeholder="Optional: paste an Anthropic API key for live AI (kept in this browser only)"><button class="btn" id="sk">Save key</button></div><p class="sub" id="am"></p><div class="chips" id="chips"></div><div class="tools"><input id="aq" placeholder="Ask the council anything about your security"><button class="btn pr" id="ask">Ask</button></div><div id="chat"></div></div></div>
+<div class="view" id="v-ast"><div class="card"><h3>Monitored assets</h3><p class="sub">248 resources · click a row with findings to open it</p><div class="tools"><input id="aq2" placeholder="Search assets"><select id="as"><option value="all">All services</option><option>IAM</option><option>S3</option><option>EC2</option><option>RDS</option><option>CloudTrail</option><option>API Gateway</option></select></div><div class="tw"><table><thead><tr><th>Resource</th><th>Type</th><th>Service</th><th>Region</th><th>Open findings</th><th>Health</th></tr></thead><tbody id="arows"></tbody></table></div></div></div>
+<div class="view" id="v-cmp"><div class="grid g2"><div class="card"><h3>Compliance coverage</h3><div class="cmp" id="cmp"></div></div><div class="card"><h3>Badges</h3><p class="sub">Unlock them by remediating.</p><div class="bd" id="bd"></div></div></div></div>
+</main></div>
+<div class="ov" id="ov"><aside class="dr" id="dr"></aside></div>
+<div class="modal" id="modal"><div><h3 id="mt">Scan your AWS environment</h3><p class="sub" id="mp">Checks identity, storage, network and logging.</p><div class="prog"><i id="pb"></i></div><div class="row" style="justify-content:flex-end"><button class="btn" id="mx">Close</button><button class="btn pr" id="mr">Start scan</button></div></div></div>
+<div class="modal" id="pal"><div><input id="pi" placeholder="Type a command or finding…"><ul id="pl"></ul></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const $=s=>document.querySelector(s),L={crit:'Critical',high:'High',med:'Medium'},W={crit:4,high:1.5,med:.5},CO={crit:'#ff4fa3',high:'#ffb02e',med:'#19d3ff'},COST={crit:350,high:90,med:10};
+const F=[['Root account has active access keys','crit','IAM','root-account','Full account takeover if the key leaks.','aws iam delete-access-key --user-name root --access-key-id AKIA…','Deactivate 1 unused root key.'],
+['Bucket allows public read access','crit','S3','acme-customer-exports','Anyone on the internet can download customer exports.','aws s3api put-public-access-block --bucket acme-customer-exports \\\n --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true','Turn on all 4 Block Public Access settings.'],
+['SSH open to the whole internet','crit','EC2','sg-0a41c9','Brute force gives a direct foothold in your network.','aws ec2 revoke-security-group-ingress --group-id sg-0a41c9 \\\n --protocol tcp --port 22 --cidr 0.0.0.0/0','Remove 1 inbound rule. Session Manager stays available.'],
+['Admin policy on deploy role','high','IAM','role/ci-deploy','Anyone on the web instance can read every bucket.','aws iam detach-role-policy --role-name ci-deploy \\\n --policy-arn arn:aws:iam::aws:policy/AdministratorAccess','Swap admin for a least-privilege policy.'],
+['Database not encrypted at rest','high','RDS','orders-db-prod','Backups are readable if copied out.','aws rds copy-db-snapshot --source-db-snapshot-identifier orders-snap \\\n --target-db-snapshot-identifier orders-enc --kms-key-id alias/aws/rds','Create an encrypted copy, cut over in maintenance window.'],
+['CloudTrail off in eu-west-1','high','CloudTrail','trail/eu-west-1','Activity in this region leaves no evidence.','aws cloudtrail start-logging --name eu-west-1','Start logging to the central bucket.'],
+['MFA missing for 3 users','high','IAM','user/ops-* (3)','One phished password opens the console.','aws iam create-virtual-mfa-device --virtual-mfa-device-name ops','Send MFA enrolment to 3 users.'],
+['Versioning off on log archive','med','S3','acme-logs-archive','Logs can be overwritten with no history.','aws s3api put-bucket-versioning --bucket acme-logs-archive \\\n --versioning-configuration Status=Enabled','Enable versioning.'],
+['Unused security group','med','EC2','sg-0d12ee','Easy to attach by mistake later.','aws ec2 delete-security-group --group-id sg-0d12ee','Delete 1 unattached group.'],
+['Backup retention under 7 days','med','RDS','analytics-db','Short recovery window after an incident.','aws rds modify-db-instance --db-instance-identifier analytics-db \\\n --backup-retention-period 14','Raise retention from 2 to 14 days.'],
+['Access key older than 90 days','med','IAM','user/svc-reporting','Longer exposure window if leaked.','aws iam create-access-key --user-name svc-reporting','Rotate the key.'],
+['Log file validation is off','med','CloudTrail','trail/management','Tampering cannot be proven.','aws cloudtrail update-trail --name management --enable-log-file-validation','Enable log digests.']
+].map((a,i)=>({id:i+1,t:a[0],sev:a[1],svc:a[2],res:a[3],imp:a[4],fix:a[5],chg:a[6],st:'open'}));
+const open=()=>F.filter(f=>f.st!='fixed'),score=()=>Math.floor(100-open().reduce((a,f)=>a+W[f.sev],0)),byId=id=>F.find(f=>f.id==id);
+const loss=()=>open().reduce((a,f)=>a+COST[f.sev],0),money=k=>k>=1000?'$'+(k/1000).toFixed(1)+'M':'$'+k+'k';
+const chip=f=>`<span class="chip ${f.sev}">${L[f.sev]}</span>`,topF=()=>open().sort((a,b)=>W[b.sev]-W[a.sev])[0];
+const rank=s=>s>=95?'Titan':s>=85?'Platinum':s>=75?'Gold':'Silver';
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('on'),2400)}
+function kpis(){const s=score(),c=open().filter(f=>f.sev=='crit').length;$('#kpis').innerHTML=
+`<div class="card kpi" style="--k:var(--v)"><div class="sub">Security score</div><div class="v">${s}<span class="sub"> / 100</span></div><div class="up">↑ ${s-73} this month</div></div>
+<div class="card kpi" style="--k:var(--p)"><div class="sub">Open findings</div><div class="v">${open().length}</div><div class="${c?'dn':'up'}">${c?c+' critical':'No critical left'}</div></div>
+<div class="card kpi" style="--k:var(--a)"><div class="sub">Breach cost at risk</div><div class="v">${money(loss())}</div><div class="sub">estimated, if exploited</div></div>
+<div class="card kpi" style="--k:var(--m)"><div class="sub">Resources watched</div><div class="v">248</div><div class="up">↑ 12 this week</div></div>`;
+$('#nb').textContent=open().length;$('#rk').textContent=rank(s);if(!kpis.d){kpis.d=1;document.querySelectorAll('.kpi .v').forEach(e=>{const t=e.firstChild,n=+t.nodeValue;if(!n)return;const t0=performance.now(),f=x=>{const p=Math.min(1,(x-t0)/900);t.nodeValue=Math.round(n*p);if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}}
+function radar(){let s='<svg viewBox="-100 -100 200 200"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#19d3ff" stop-opacity="0"/><stop offset="1" stop-color="#19d3ff" stop-opacity=".55"/></linearGradient></defs>'+[30,60,90].map(r=>`<circle class="ring" r="${r}"/>`).join('')+'<path class="ring" d="M-95 0H95M0-95V95"/><g class="sw"><path d="M0 0V-95A95 95 0 0 1 67-67Z" fill="url(#g)"/></g>';
+ F.forEach(f=>{const a=f.id*137.5*Math.PI/180,r={crit:32,high:58,med:82}[f.sev]+f.id%3*3,x=(r*Math.cos(a)).toFixed(1),y=(r*Math.sin(a)).toFixed(1),fx=f.st=='fixed';
+ s+=`<g class="bl ${fx?'fx':''}" onclick="openF(${f.id})"><title>${f.t}</title><circle cx="${x}" cy="${y}" r="${fx?3:5}" fill="${fx?'#35f2a0':CO[f.sev]}"/></g>`});
+ $('#radar').innerHTML=s+'<circle r="3" fill="#fff"/></svg>'}
+function rows(){const q=$('#q').value.toLowerCase(),s=$('#fs').value,v=$('#fv').value,r=F.filter(f=>(s=='all'||f.sev==s)&&(v=='all'||f.svc==v)&&(f.t+f.res).toLowerCase().includes(q));
+ $('#rows').innerHTML=r.map(f=>`<tr class="${f.st=='fixed'?'fixed':''}" onclick="openF(${f.id})"><td>${f.t}</td><td>${chip(f)}</td><td>${f.svc}</td><td><small>${f.res}</small></td><td class="${f.st=='fixed'?'ok':''}">${f.st=='fixed'?'Remediated':'Open'}</td></tr>`).join('');$('#none').style.display=r.length?'none':'block'}
+function cmp(){const s=score(),d=(s-79)*.6;$('#cmp').innerHTML=[['CIS AWS',82,'--c'],['SOC 2',88,'--v'],['ISO 27001',85,'--m'],['PCI DSS',74,'--a']].map(([n,b,c])=>{const v=Math.min(100,Math.round(b+d));return`<div><span>${n}</span><span class="bar"><i style="width:${v}%;background:var(${c})"></i></span><b>${v}%</b></div>`}).join('');
+ const fx=F.filter(f=>f.st=='fixed').length,B=[['🛡️ First fix',fx>=1],['🔥 Critical slayer',!open().some(f=>f.sev=='crit')],['🔐 Identity locked',F.filter(f=>f.svc=='IAM'&&f.st!='fixed').length==0],['🏆 Score 90+',score()>=90],['⚡ Five fixes',fx>=5]];
+ $('#bd').innerHTML=B.map(b=>`<span class="${b[1]?'':'lk'}">${b[0]}</span>`).join('')}
+function all(){kpis();radar();rows();cmp();spark();ast()}
+const EV=[['#ff4fa3','Blocked','14 SSH attempts from 185.220.x.x'],['#ffb02e','Warn','New IAM user created outside business hours'],['#19d3ff','Info','Config change detected on sg-0a41c9'],['#35f2a0','Safe','Backup completed for orders-db-prod'],['#8b6bff','AI','Sentinel flagged an unusual login from a new country']];
+function ev(){const e=EV[Math.random()*EV.length|0],li=document.createElement('li');li.innerHTML=`<span class="tag" style="background:${e[0]}">${e[1]}</span>${e[2]}`;const f=$('#feed');f.prepend(li);while(f.children.length>7)f.lastChild.remove()}
+for(let i=0;i<5;i++)ev();setInterval(ev,4500);
+function openF(id){const f=byId(id);$('#ov').classList.add('on');
+ $('#dr').innerHTML=`<div class="row" style="justify-content:space-between">${chip(f)}<button class="btn" onclick="closeF()">Close</button></div><h2>${f.t}</h2><p class="sub">${f.svc} · ${f.res}</p><h4>Why it matters</h4><p>${f.imp}</p><h4>Forge proposes this fix</h4><pre>${f.fix}</pre>
+ ${f.st=='fixed'?'<p class="ok" style="margin-top:14px">Remediated.</p>':`<div id="rv"></div><div class="row" style="margin-top:16px"><button class="btn pr" id="go">Review change</button><button class="btn" id="cp">Copy command</button></div>`}`;
+ const go=$('#go');if(go){go.onclick=()=>{if(go.dataset.s){f.st='fixed';closeF();all();toast('Fixed · score is now '+score())}else{go.dataset.s=1;go.textContent='Approve and apply';$('#rv').innerHTML=`<div class="diff"><b>This will change:</b><br>${f.chg}<br><span class="sub">Nothing happens until you approve.</span></div>`}};$('#cp').onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(f.fix.replace(/\\\n/g,''));toast('Command copied')}}}
+function closeF(){$('#ov').classList.remove('on')}
+$('#ov').onclick=e=>{if(e.target.id=='ov')closeF()};document.onkeydown=e=>{if(e.key=='Escape'){closeF();$('#modal').classList.remove('on')}};
+$('#nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x==b));document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id=='v-'+b.dataset.v))};
+['q','fs','fv'].forEach(i=>$('#'+i).oninput=rows);
+$('#fa').onclick=()=>{const c=open().filter(f=>f.sev=='crit');if(!c.length)return toast('No critical findings left');if(confirm('Apply these '+c.length+' fixes?\n\n'+c.map(f=>'• '+f.chg).join('\n'))){c.forEach(f=>f.st='fixed');all();toast('Critical findings remediated')}};
+// Red team
+$('#atk').onclick=()=>{const T=$('#term'),S=[['Recon: scanning public IP range',0,'3 hosts found'],['Brute-forcing SSH on port 22',3,'login succeeded'],['Assuming ci-deploy admin role',4,'admin access gained'],['Reading acme-customer-exports',2,'bucket is public'],['Exfiltrating customer records',2,'1.2M rows copied']];T.innerHTML='';let i=0;$('#atk').disabled=true;
+ const add=(h,c)=>T.insertAdjacentHTML('beforeend',`<div style="color:${c}">${h}</div>`),n=()=>{if(i>=S.length){add('<b>BREACH.</b> Estimated loss '+money(loss())+'. Fix any link above and run again.','#ff4fa3');return end()}
+  const [t,id,ok]=S[i];add('▶ '+t+'…','#19d3ff');setTimeout(()=>{if(id&&byId(id).st=='fixed'){add('✖ Blocked — '+byId(id).t+' is fixed. Attack stopped.','#35f2a0');add('<b>DEFENDED.</b> You avoided about '+money(Object.values(COST).reduce((a,b)=>a+b)*3)+' in damage.','#35f2a0');return end()}add('✔ '+ok,'#ffb02e');i++;setTimeout(n,500)},700)},end=()=>$('#atk').disabled=false;n()};
+// AI council
+const AI=[['Sentinel','S','#19d3ff','Detection'],['Oracle','O','#ff4fa3','Strategy'],['Forge','F','#ffb02e','Engineering']];
+function answer(q){q=q.toLowerCase();const t=topF(),c=open().filter(f=>f.sev=='crit').length;if(!t)return[['All clear. I see no open findings.'],['Attackers have no known path in. Keep scanning weekly.'],['Nothing to fix. I can generate Terraform guardrails to keep it that way.'],'Your cloud is in a strong state.'];
+ if(/cost|money|loss|\$/.test(q))return[[`${open().length} open findings feed the risk model.`],[`Estimated breach cost today: ${money(loss())}. Critical items drive most of it.`],[`Fixing “${t.t}” first cuts the most cost.`],`Risk is ${money(loss())}. Start with ${t.res}.`];
+ if(/fix|first|priority|start/.test(q))return[[`Highest signal: “${t.t}” on ${t.res}.`],[t.imp+' It sits on the attacker’s shortest path.'],['Command ready:\n'+t.fix.replace(/\\\n/g,'')],`Fix ${t.res} first, then re-scan.`];
+ if(/attack|hack|path|risk/.test(q))return[['Chain found: internet → SSH → admin role → customer bucket.'],['An attacker needs 3 steps and no special skill.'],['Breaking SSH or the admin role stops it. Use Red team attack to prove it.'],'One fix breaks the whole chain.'];
+ return[[`Score ${score()}/100 with ${c} critical.`],['You have a strong base. Gaps sit in identity and storage.'],[`Review “${t.t}” and approve the change.`],'Good foundation. Close the critical items to reach Gold.']}
+const chat=$('#chat');
+const KEY=()=>{try{return localStorage.getItem('aegis_key')||''}catch(e){return ''}},esc=s=>String(s).replace(/</g,'&lt;');
+function bub(m,t){chat.insertAdjacentHTML('beforeend',`<div class="cb"><div class="av" style="background:${m[2]}">${m[1]}</div><div class="bub"><b style="color:${m[2]}">${m[0]} · ${m[3]}</b>${t}</div></div>`)}
+function play(r){r.slice(0,3).forEach((a,i)=>setTimeout(()=>bub(AI[i],esc(a)),500*(i+1)));setTimeout(()=>chat.insertAdjacentHTML('beforeend',`<div class="cb"><div class="av" style="background:linear-gradient(135deg,#8b6bff,#ff4fa3)">✦</div><div class="bub"><b>Council consensus</b>${esc(r[3])}</div></div>`),2100)}
+async function real(q,k){const ctx=open().map(f=>({t:f.t,sev:f.sev,res:f.res,why:f.imp,fix:f.fix}));
+ const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-5-5',max_tokens:700,system:'You are the AEGIS AI council for an AWS security dashboard. Sentinel detects threats, Oracle explains attack paths and breach cost, Forge gives exact fixes. Use only the findings provided. Reply with ONLY JSON: {"s":"","o":"","f":"","c":""}. Each value under 45 words, plain text.',messages:[{role:'user',content:'Open findings: '+JSON.stringify(ctx)+'\nQuestion: '+q}]})});
+ if(!r.ok)throw new Error(r.status);const d=await r.json(),j=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());return[j.s,j.o,j.f,j.c]}
+async function say(q){chat.insertAdjacentHTML('beforeend',`<div class="cb"><div class="av" style="background:#fff">You</div><div class="bub">${esc(q)}</div></div>`);const k=KEY();
+ if(k){try{play(await real(q,k));return}catch(e){toast('Live AI unavailable, using the offline council')}}
+ const r=answer(q);play([r[0][0],r[1][0],r[2][0],r[3]])}
+$('#chips').innerHTML=['What is my biggest risk?','What should I fix first?','How much could a breach cost?','Explain it simply'].map(k=>`<button>${k}</button>`).join('');
+$('#chips').onclick=e=>{if(e.target.tagName=='BUTTON')say(e.target.textContent)};$('#ask').onclick=()=>{const v=$('#aq').value.trim();if(v){say(v);$('#aq').value=''}};$('#aq').onkeydown=e=>{if(e.key=='Enter')$('#ask').click()};
+// scan + export
+let sc=false;const M=$('#modal');$('#scan').onclick=()=>{M.classList.add('on');$('#mt').textContent='Scan your AWS environment';$('#pb').style.width=0;$('#mr').style.display=''};$('#mx').onclick=()=>M.classList.remove('on');
+$('#mr').onclick=()=>{$('#mr').style.display='none';$('#mt').textContent='Scanning…';const st=['Checking identity and access','Checking storage and databases','Checking network and logging'];let n=0;const h=setInterval(()=>{$('#pb').style.width=(++n*25)+'%';$('#mp').textContent=st[Math.min(n-1,2)];if(n==4){clearInterval(h);$('#mt').textContent='Scan complete';
+ if(!sc){sc=true;F.push({id:13,t:'Database snapshot shared publicly',sev:'high',svc:'RDS',res:'orders-snap-0910',imp:'Anyone can copy your orders data.',fix:'aws rds modify-db-snapshot-attribute --db-snapshot-identifier orders-snap-0910 \\\n --attribute-name restore --values-to-remove all',chg:'Remove public restore access from 1 snapshot.',st:'open'});$('#mp').textContent='1 new high-severity finding added.';all()}else $('#mp').textContent='No new findings since the last scan.'}},650)};
+$('#exp').onclick=()=>{const q=v=>'"'+String(v).replace(/"/g,'""')+'"',c=['id,finding,severity,service,resource,status',...F.map(f=>[f.id,q(f.t),f.sev,f.svc,q(f.res),f.st].join(','))].join('\n'),a=document.createElement('a');a.href=URL.createObjectURL(new Blob([c],{type:'text/csv'}));a.download='aegis-report.csv';a.click();toast('CSV exported')};
+// Score trend
+const H=[...Array(30)].map((_,i)=>Math.round(73+6*i/29+Math.sin(i*1.7)*1.5));
+function spark(){H[29]=score();const mn=Math.min(...H)-2,mx=Math.max(...H)+2,p=H.map((v,i)=>`${(i/29*600).toFixed(0)},${(90-(v-mn)/(mx-mn)*80).toFixed(0)}`).join(' ');
+$('#spark').innerHTML=`<svg viewBox="0 0 600 100" preserveAspectRatio="none" style="width:100%;height:110px"><defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8b6bff" stop-opacity=".5"/><stop offset="1" stop-color="#8b6bff" stop-opacity="0"/></linearGradient></defs><polygon points="0,100 ${p} 600,100" fill="url(#sg)"/><polyline points="${p}" fill="none" stroke="#19d3ff" stroke-width="2.5" vector-effect="non-scaling-stroke"/></svg>`}
+// Assets
+const AS=[['acme-customer-exports','S3 bucket','S3','us-east-1','customer-exports'],['acme-logs-archive','S3 bucket','S3','us-east-1','logs-archive'],['i-0b7e2 web-1','Instance','EC2','us-east-1','sg-0a41c9'],['sg-0d12ee','Security group','EC2','us-east-1','sg-0d12ee'],['orders-db-prod','Database','RDS','us-east-1','orders-db'],['analytics-db','Database','RDS','us-east-1','analytics-db'],['role/ci-deploy','IAM role','IAM','global','ci-deploy'],['root-account','Account','IAM','global','root-account'],['user/svc-reporting','IAM user','IAM','global','svc-reporting'],['trail/eu-west-1','Trail','CloudTrail','eu-west-1','eu-west-1'],['trail/management','Trail','CloudTrail','us-east-1','trail/management'],['api-gateway-prod','API','API Gateway','us-east-1','none']];
+function ast(){const q=$('#aq2').value.toLowerCase(),s=$('#as').value;$('#arows').innerHTML=AS.filter(a=>(s=='all'||a[2]==s)&&a[0].toLowerCase().includes(q)).map(a=>{const fs=open().filter(f=>f.res.includes(a[4])).sort((x,y)=>W[y.sev]-W[x.sev]),w=fs[0];return`<tr onclick="${w?`openF(${w.id})`:`toast('No open findings on this asset')`}"><td>${a[0]}</td><td>${a[1]}</td><td>${a[2]}</td><td><small>${a[3]}</small></td><td>${fs.length}</td><td>${w?chip(w):'<span class="ok">Healthy</span>'}</td></tr>`}).join('')}
+['aq2','as'].forEach(i=>$('#'+i).oninput=ast);
+// Live AI key
+const mode=()=>$('#am').textContent='Mode: '+(KEY()?'live AI (Claude)':'simulated council');
+$('#sk').onclick=()=>{const v=$('#ak').value.trim();try{v?localStorage.setItem('aegis_key',v):localStorage.removeItem('aegis_key')}catch(e){}$('#ak').value='';mode();toast(v?'Live AI enabled':'Key removed')};mode();
+// Command palette
+const PA=()=>[...[['Command centre','cmd'],['Findings','fin'],['Red team attack','red'],['AI council','ai'],['Assets','ast'],['Compliance and rank','cmp']].map(([n,v])=>({n:'Go to '+n,fn:()=>$('[data-v='+v+']').click()})),{n:'Run security scan',fn:()=>$('#scan').click()},{n:'Launch red team attack',fn:()=>{$('[data-v=red]').click();$('#atk').click()}},{n:'Fix all critical findings',fn:()=>$('#fa').click()},{n:'Export CSV report',fn:()=>$('#exp').click()},...F.map(f=>({n:'Finding: '+f.t,fn:()=>openF(f.id)}))];
+let pf=[];function plist(){const q=$('#pi').value.toLowerCase();pf=PA().filter(x=>x.n.toLowerCase().includes(q)).slice(0,8);$('#pl').innerHTML=pf.map((x,i)=>`<li class="${i?'':'on'}">${x.n}</li>`).join('')}
+function runP(i){const x=pf[i];$('#pal').classList.remove('on');if(x)x.fn()}
+$('#pi').oninput=plist;$('#pi').onkeydown=e=>{if(e.key=='Enter')runP(0)};$('#pl').onclick=e=>{const li=e.target.closest('li');if(li)runP([...$('#pl').children].indexOf(li))};
+const openP=()=>{$('#pal').classList.add('on');$('#pi').value='';plist();$('#pi').focus()};$('#pk').onclick=openP;
+addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()=='k'){e.preventDefault();openP()}if(e.key=='Escape')$('#pal').classList.remove('on')});
+all();
+</script></body></html>
